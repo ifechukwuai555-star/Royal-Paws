@@ -1,299 +1,170 @@
-/* =========================================================
-   ROYAL PAWS — PREMIUM PET STORE
-   STEP 3: script.js
-   ========================================================= */
-
 document.addEventListener('DOMContentLoaded', () => {
+  const menuToggle = document.getElementById('menuToggle');
+  const mainNavigation = document.getElementById('mainNavigation');
+  const navLinks = document.querySelectorAll('.nav-link');
 
-    /* =========================
-       ELEMENTS
-       ========================= */
+  const contactForm = document.getElementById('contactForm');
+  const formStatus = document.getElementById('formStatus');
 
-    const menuToggle = document.getElementById('menuToggle');
-    const mainNavigation = document.getElementById('mainNavigation');
-    const navLinks = document.querySelectorAll('.nav-link');
-    const contactForm = document.getElementById('contactForm');
-    const formStatus = document.getElementById('formStatus');
+  // Mobile navigation
+  if (menuToggle && mainNavigation) {
+    menuToggle.addEventListener('click', () => {
+      const isOpen = mainNavigation.classList.toggle('open');
 
+      menuToggle.setAttribute('aria-expanded', String(isOpen));
+      menuToggle.setAttribute(
+        'aria-label',
+        isOpen ? 'Close navigation menu' : 'Open navigation menu'
+      );
+    });
 
-    /* =========================
-       MOBILE NAVIGATION
-       ========================= */
+    navLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        mainNavigation.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Open navigation menu');
+      });
+    });
 
-    if (menuToggle && mainNavigation) {
+    document.addEventListener('click', (event) => {
+      if (
+        mainNavigation.classList.contains('open') &&
+        !mainNavigation.contains(event.target) &&
+        !menuToggle.contains(event.target)
+      ) {
+        mainNavigation.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Open navigation menu');
+      }
+    });
 
-        menuToggle.addEventListener('click', () => {
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && mainNavigation.classList.contains('open')) {
+        mainNavigation.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Open navigation menu');
+        menuToggle.focus();
+      }
+    });
+  }
 
-            const isOpen = mainNavigation.classList.toggle('open');
+  // Active navigation link while scrolling
+  const sections = document.querySelectorAll('main section[id]');
 
-            menuToggle.setAttribute(
-                'aria-expanded',
-                String(isOpen)
-            );
+  const updateActiveNav = () => {
+    const scrollPosition = window.scrollY + 160;
+    let currentSection = '';
 
-            menuToggle.setAttribute(
-                'aria-label',
-                isOpen
-                    ? 'Close navigation menu'
-                    : 'Open navigation menu'
-            );
+    sections.forEach((section) => {
+      if (scrollPosition >= section.offsetTop) {
+        currentSection = section.id;
+      }
+    });
+
+    navLinks.forEach((link) => {
+      const href = link.getAttribute('href');
+
+      if (href === `#${currentSection}`) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+  };
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav();
+
+  // Contact form
+  if (contactForm && formStatus) {
+    contactForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const nameInput = document.getElementById('name');
+      const emailInput = document.getElementById('email');
+      const phoneInput = document.getElementById('phone');
+      const messageInput = document.getElementById('message');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const email = emailInput ? emailInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const message = messageInput ? messageInput.value.trim() : '';
+
+      if (!name || !email || !message) {
+        formStatus.textContent = 'Please complete all required fields.';
+        formStatus.className = 'form-status error';
+        return;
+      }
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailPattern.test(email)) {
+        formStatus.textContent = 'Please enter a valid email address.';
+        formStatus.className = 'form-status error';
+        return;
+      }
+
+      if (
+        name.length > 100 ||
+        email.length > 150 ||
+        phone.length > 30 ||
+        message.length > 2000
+      ) {
+        formStatus.textContent = 'One or more fields are too long.';
+        formStatus.className = 'form-status error';
+        return;
+      }
+
+      const submitButton = contactForm.querySelector('button[type="submit"]');
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+      }
+
+      formStatus.textContent = 'Sending your message...';
+      formStatus.className = 'form-status';
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            phone,
+            message
+          })
         });
 
-
-        /* Close menu after selecting a navigation link */
-
-        navLinks.forEach((link) => {
-
-            link.addEventListener('click', () => {
-
-                mainNavigation.classList.remove('open');
-
-                menuToggle.setAttribute(
-                    'aria-expanded',
-                    'false'
-                );
-
-                menuToggle.setAttribute(
-                    'aria-label',
-                    'Open navigation menu'
-                );
-            });
-
-        });
-
-
-        /* Close menu when clicking outside it */
-
-        document.addEventListener('click', (event) => {
-
-            const clickedInsideNavigation =
-                mainNavigation.contains(event.target);
-
-            const clickedMenuButton =
-                menuToggle.contains(event.target);
-
-            if (
-                !clickedInsideNavigation &&
-                !clickedMenuButton &&
-                mainNavigation.classList.contains('open')
-            ) {
-
-                mainNavigation.classList.remove('open');
-
-                menuToggle.setAttribute(
-                    'aria-expanded',
-                    'false'
-                );
-
-                menuToggle.setAttribute(
-                    'aria-label',
-                    'Open navigation menu'
-                );
-            }
-
-        });
-
-
-        /* Close mobile menu with Escape */
-
-        document.addEventListener('keydown', (event) => {
-
-            if (
-                event.key === 'Escape' &&
-                mainNavigation.classList.contains('open')
-            ) {
-
-                mainNavigation.classList.remove('open');
-
-                menuToggle.setAttribute(
-                    'aria-expanded',
-                    'false'
-                );
-
-                menuToggle.setAttribute(
-                    'aria-label',
-                    'Open navigation menu'
-                );
-
-                menuToggle.focus();
-            }
-
-        });
-
-    }
-
-
-    /* =========================
-       ACTIVE NAVIGATION LINK
-       ========================= */
-
-    const sections = document.querySelectorAll(
-        'main section[id]'
-    );
-
-    if (sections.length > 0 && navLinks.length > 0) {
-
-        const updateActiveNavigation = () => {
-
-            const scrollPosition =
-                window.scrollY + 140;
-
-            let currentSection = 'home';
-
-            sections.forEach((section) => {
-
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.offsetHeight;
-
-                if (
-                    scrollPosition >= sectionTop &&
-                    scrollPosition < sectionTop + sectionHeight
-                ) {
-                    currentSection = section.id;
-                }
-
-            });
-
-            navLinks.forEach((link) => {
-
-                const linkTarget =
-                    link.getAttribute('href');
-
-                link.classList.toggle(
-                    'active',
-                    linkTarget === `#${currentSection}`
-                );
-
-            });
-
-        };
-
-
-        window.addEventListener(
-            'scroll',
-            updateActiveNavigation,
-            { passive: true }
-        );
-
-        updateActiveNavigation();
-    }
-
-
-    /* =========================
-       CONTACT FORM
-       ========================= */
-
-    if (contactForm && formStatus) {
-
-        contactForm.addEventListener(
-            'submit',
-            (event) => {
-
-                event.preventDefault();
-
-                const nameInput =
-                    document.getElementById('name');
-
-                const emailInput =
-                    document.getElementById('email');
-
-                const phoneInput =
-                    document.getElementById('phone');
-
-                const messageInput =
-                    document.getElementById('message');
-
-
-                if (
-                    !nameInput ||
-                    !emailInput ||
-                    !messageInput
-                ) {
-                    formStatus.textContent =
-                        'The contact form is temporarily unavailable. Please contact us by phone or email.';
-
-                    return;
-                }
-
-
-                const name =
-                    nameInput.value.trim();
-
-                const email =
-                    emailInput.value.trim();
-
-                const phone =
-                    phoneInput
-                        ? phoneInput.value.trim()
-                        : '';
-
-                const message =
-                    messageInput.value.trim();
-
-
-                /* Basic validation */
-
-                if (!name) {
-
-                    formStatus.textContent =
-                        'Please enter your name.';
-
-                    nameInput.focus();
-
-                    return;
-                }
-
-
-                if (!email) {
-
-                    formStatus.textContent =
-                        'Please enter your email address.';
-
-                    emailInput.focus();
-
-                    return;
-                }
-
-
-                const emailPattern =
-                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-                if (!emailPattern.test(email)) {
-
-                    formStatus.textContent =
-                        'Please enter a valid email address.';
-
-                    emailInput.focus();
-
-                    return;
-                }
-
-
-                if (!message) {
-
-                    formStatus.textContent =
-                        'Please enter a message.';
-
-                    messageInput.focus();
-
-                    return;
-                }
-
-
-                /*
-                 * The backend will be connected later.
-                 * For now, we confirm that the form
-                 * has been filled correctly.
-                 */
-
-                formStatus.textContent =
-                    `Thanks, ${name}. Your message is ready to be sent.`;
-
-                contactForm.reset();
-
-            }
-        );
-
-    }
-
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok || !data || !data.success) {
+          throw new Error(
+            data?.message || 'We could not send your message.'
+          );
+        }
+
+        formStatus.textContent = data.message;
+        formStatus.className = 'form-status success';
+
+        contactForm.reset();
+      } catch (error) {
+        console.error('Contact form error:', error);
+
+        formStatus.textContent =
+          error.message ||
+          'Something went wrong. Please try again later.';
+
+        formStatus.className = 'form-status error';
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Send Message';
+        }
+      }
+    });
+  }
 });
