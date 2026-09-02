@@ -1,0 +1,14 @@
+{
+  "name": "royal-paws",
+  "version": "1.0.0",
+  "description": "Royal Paws premium pet store website and backend",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "cors": "^2.8.5"
+  }
+}
